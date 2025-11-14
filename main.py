@@ -1,20 +1,16 @@
+import sqlite3
 import bcrypt
-import os
 from typing import Optional
 
+# Path to your SQLite database
+DB_PATH = r"C:\Users\caleb\VSCode\CW2_M01054278_CST1510\DATA\intelligence_platform.db"
 
+
+# ----------------------------
 # Password Hashing & Verification
-
+# ----------------------------
 def hash_password(plain_password: str) -> str:
-    """
-    Hash a plaintext password using bcrypt.
-
-    Args:
-        plain_password (str): The user's plaintext password.
-
-    Returns:
-        str: UTF-8 string of the hashed password (including salt).
-    """
+    """Hash a plaintext password using bcrypt."""
     password_bytes = plain_password.encode("utf-8")
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password_bytes, salt)
@@ -22,92 +18,75 @@ def hash_password(plain_password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verify a plaintext password against a bcrypt hash.
-
-    Args:
-        plain_password (str): The password entered by the user.
-        hashed_password (str): The hashed password stored in users.txt.
-
-    Returns:
-        bool: True if the password is correct, otherwise False.
-    """
+    """Verify a plaintext password against a bcrypt hash."""
     password_bytes = plain_password.encode("utf-8")
     hashed_bytes = hashed_password.encode("utf-8")
     return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
-# User File Handling
-
-
-def _load_users(path: str = "users.txt") -> dict:
-    """
-    Load users and their hashed passwords from a text file.
-
-    Args:
-        path (str): Path to the users file. Defaults to 'users.txt'.
-
-    Returns:
-        dict: A dictionary mapping usernames -> password_hash.
-    """
-    users = {}
-    if not os.path.exists(path):
-        return users
-
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            if not line.strip():
-                continue  # skip empty lines
-            try:
-                stored_user, stored_hash = line.strip().split(",", 1)
-                users[stored_user.strip()] = stored_hash.strip()
-            except ValueError:
-                # Skip malformed lines (e.g., missing comma)
-                continue
+# ----------------------------
+# Database Functions
+# ----------------------------
+def _load_users() -> dict:
+    """Load all users from the database into a dictionary."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, password_hash FROM users")
+    users = {row[0]: row[1] for row in cursor.fetchall()}
+    conn.close()
     return users
 
 
-# User Registration
+def create_users_table():
+    """Create the users table if it doesn't exist."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT DEFAULT 'user'
+        )
+    """)
+    conn.commit()
+    conn.close()
 
+
+# ----------------------------
+# User Operations
+# ----------------------------
 def register_user():
-    """
-    Register a new user and store their hashed password.
-    """
-    user_name = input("Enter user name: ").strip()
-    if not user_name:
+    """Register a new user."""
+    username = input("Enter username: ").strip()
+    if not username:
         print("Username cannot be empty.")
         return
 
-    password = input("Enter user password: ")
+    password = input("Enter password: ").strip()
     if not password:
         print("Password cannot be empty.")
         return
 
-    users = _load_users()
-    if user_name in users:
-        print("Username already exists.")
-        return
-
     hashed = hash_password(password)
-    with open("users.txt", "a", encoding="utf-8") as f:
-        f.write(f"{user_name}, {hashed}\n")
 
-    print("Registration successful.")
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+            (username, hashed)
+        )
+        conn.commit()
+        print("Registration successful.")
+    except sqlite3.IntegrityError:
+        print("Username already exists.")
+    finally:
+        conn.close()
 
-
-# User Login
 
 def login_user(user_name: str, password: str) -> bool:
-    """
-    Attempt to log in a user by verifying their credentials.
-
-    Args:
-        user_name (str): The username to log in with.
-        password (str): The plaintext password to verify.
-
-    Returns:
-        bool: True if login succeeds, False otherwise.
-    """
+    """Login a user by verifying their credentials."""
     users = _load_users()
     stored_hash: Optional[str] = users.get(user_name)
 
@@ -123,12 +102,12 @@ def login_user(user_name: str, password: str) -> bool:
         return False
 
 
+# ----------------------------
 # Main Program Loop
-
+# ----------------------------
 def main():
-    """
-    Command-line interface for registration and login.
-    """
+    create_users_table()  # Ensure table exists
+
     while True:
         print("\n=== USER AUTH SYSTEM ===")
         print("1) Register")
@@ -150,6 +129,5 @@ def main():
 
 
 # Entry Point
-
 if __name__ == "__main__":
     main()
