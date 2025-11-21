@@ -1,45 +1,68 @@
 import sqlite3
+import os
+import pandas as pd
 
-# Connect to the SQLite database
-conn = sqlite3.connect(
-    r"C:\Users\caleb\VSCode\CW2_M01054278_CST1510\DATA\intelligence_platform.db"
-)
+BASE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BASE_DIR, 'DATA')
+DB_PATH = os.path.join(DATA_DIR, 'intelligence_platform.db')
+
+# Connect to DB
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
-# Create the 'users' table if it doesn't exist
+# Create additional tables
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    role TEXT DEFAULT 'user'
+CREATE TABLE IF NOT EXISTS cyber_incidents (
+    incident_id INTEGER PRIMARY KEY,
+    timestamp TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    category TEXT NOT NULL,
+    status TEXT NOT NULL,
+    description TEXT
 )
 """)
-conn.commit()
 
-# Insert a user
-cursor.execute(
-    "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-    ('bob', 'hashed_password_here', 'user')
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS datasets_metadata (
+    dataset_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    rows INTEGER NOT NULL,
+    columns INTEGER NOT NULL,
+    uploaded_by TEXT NOT NULL,
+    upload_date TEXT NOT NULL
 )
-conn.commit()
+""")
 
-# Query and print all users
-cursor.execute("SELECT * FROM users")
-users = cursor.fetchall()
-print(users)
-
-# Update a user's role
-cursor.execute(
-    "UPDATE users SET role = ? WHERE username = ?",
-    ('admin', 'bob')
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS it_tickets (
+    ticket_id INTEGER PRIMARY KEY,
+    priority TEXT NOT NULL,
+    description TEXT NOT NULL,
+    status TEXT NOT NULL,
+    assigned_to TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    resolution_time_hours REAL
 )
+""")
+
 conn.commit()
 
-# Delete a user safely
-cursor.execute("DELETE FROM users WHERE username = ?", ('alice',))
-conn.commit()
-print(f"Deleted {cursor.rowcount} user(s)")
+def load_csv_to_table(filename, table_name):
+    path = os.path.join(DATA_DIR, filename)
+    if not os.path.exists(path):
+        print(f"File not found: {path}")
+        return
+    try:
+        df = pd.read_csv(path)
+        df.to_sql(table_name, conn, if_exists='append', index=False)
+        conn.commit()
+        print(f"Loaded {len(df)} rows into '{table_name}' from {filename}")
+    except Exception as e:
+        print(f"Failed to load {filename} -> {e}")
 
-# Close the connection
+# Load tables (optional—run once)
+# load_csv_to_table'cyber_incidents.csv'
+# load_csv_to_table'datasets_metadata.csv'
+# load_csv_to_table'it_tickets.csv'
+
 conn.close()

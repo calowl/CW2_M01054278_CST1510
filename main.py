@@ -5,7 +5,6 @@ from typing import Optional
 # Path to your SQLite database
 DB_PATH = r"C:\Users\caleb\VSCode\CW2_M01054278_CST1510\DATA\intelligence_platform.db"
 
-
 # ----------------------------
 # Password Hashing & Verification
 # ----------------------------
@@ -22,7 +21,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     password_bytes = plain_password.encode("utf-8")
     hashed_bytes = hashed_password.encode("utf-8")
     return bcrypt.checkpw(password_bytes, hashed_bytes)
-
 
 # ----------------------------
 # Database Functions
@@ -51,7 +49,6 @@ def create_users_table():
     """)
     conn.commit()
     conn.close()
-
 
 # ----------------------------
 # User Operations
@@ -101,12 +98,11 @@ def login_user(user_name: str, password: str) -> bool:
         print("Invalid password.")
         return False
 
-
 # ----------------------------
 # Main Program Loop
 # ----------------------------
 def main():
-    create_users_table()  # Ensure table exists
+    create_users_table()
 
     while True:
         print("\n=== USER AUTH SYSTEM ===")
@@ -115,6 +111,7 @@ def main():
         print("3) Exit")
 
         choice = input("Choose an option: ").strip()
+
         if choice == "1":
             register_user()
         elif choice == "2":
@@ -122,12 +119,11 @@ def main():
             password = input("Enter password: ")
             login_user(username, password)
         elif choice == "3":
-            print("Goodbye.")
+            print("bye bye :3")
             break
         else:
             print("Invalid choice. Please enter 1, 2, or 3.")
 
 
-# Entry Point
 if __name__ == "__main__":
     main()
