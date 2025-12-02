@@ -1,42 +1,40 @@
 import streamlit as st
 import pandas as pd
-import time
-from pathlib import Path
 
-file_path = 'DATA\\it_tickets.csv'
-tickets_df = pd.read_csv(file_path)
-cyber_incidents_df = pd.read_csv(file_path)
+# --- Load Data ---
+tickets_df = pd.read_csv("DATA/it_tickets.csv")
+cyber_df = pd.read_csv("DATA/cyber_incidents.csv") 
+metadata_df = pd.read_csv("DATA/datasets_metadata.csv")  
 
+# --- Page Config ---
+st.set_page_config(page_title="Home", layout="wide", page_icon="😵‍💫")
 
-st.set_page_config(
-    page_title= "home page",
-    layout = "wide",
-    page_icon = "😵‍💫"
-)
+# --- Initialize session state ---
+if "page" not in st.session_state:
+    st.session_state.page = "Home"
 
-st.title("Welcome to the Streamlit App!!!!")
-st.write("welcome to home page")
-
-
+# --- Sidebar Buttons ---
 with st.sidebar:
-    st.header("Controls")
-    option = st.selectbox(
-    "Choose",
-    ["IT", "CYBER", "METADATA"]
-)
-    
-col1, col2 = st.columns(2)
+    st.header("Navigation")
+    if st.button("Home"):
+        st.session_state.page = "Home"
+    if st.button("IT"):
+        st.session_state.page = "IT"
+    if st.button("Cyber"):
+        st.session_state.page = "Cyber"
+    if st.button("Metadata"):
+        st.session_state.page = "Metadata"
 
-with col1:
-    st.subheader("Tickets")
+# --- Page Content ---
+if st.session_state.page == "Home":
+    st.title("Welcome to the Streamlit App!")
+    st.write("Welcome to the homepage.")
+elif st.session_state.page == "IT":
+    st.title("IT Tickets")
     st.dataframe(tickets_df)
-
-#make seperate pages and link from side bar 
-with col2:
-    st.subheader("cyber")
-    st.dataframe(cyber_incidents_df)
-
-
-
-
-
+elif st.session_state.page == "Cyber":
+    st.title("Cyber Incidents")
+    st.dataframe(cyber_df)
+elif st.session_state.page == "Metadata":
+    st.title("Metadata")
+    st.dataframe(metadata_df)
