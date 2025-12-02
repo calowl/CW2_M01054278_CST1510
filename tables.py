@@ -1,14 +1,19 @@
+
 import sqlite3
 import os
 import pandas as pd
-
-BASE_DIR = os.path.dirname(__file__)
-DATA_DIR = os.path.join(BASE_DIR, 'DATA')
-DB_PATH = os.path.join(DATA_DIR, 'intelligence_platform.db')
+from config import DATA_DIR, DB_PATH
 
 # Connect to DB
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
+
+# ... rest of your tables.py code remains the same ...
+
+
+BASE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BASE_DIR, 'DATA')
+DB_PATH = os.path.join(DATA_DIR, 'intelligence_platform.db')
 
 # Create additional tables
 cursor.execute("""

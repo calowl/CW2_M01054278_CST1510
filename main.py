@@ -2,12 +2,11 @@ import sqlite3
 import bcrypt
 from typing import Optional
 
-# Path to your SQLite database
-DB_PATH = r"C:\Users\caleb\VSCode\CW2_M01054278_CST1510\DATA\intelligence_platform.db"
+# Import from config.py
+from config import DB_PATH
 
 # ----------------------------
-# Password Hashing & Verification
-# ----------------------------
+# Password Hashing & 
 def hash_password(plain_password: str) -> str:
     """Hash a plaintext password using bcrypt."""
     password_bytes = plain_password.encode("utf-8")
@@ -15,6 +14,8 @@ def hash_password(plain_password: str) -> str:
     hashed_password = bcrypt.hashpw(password_bytes, salt)
     return hashed_password.decode("utf-8")
 
+# ----------------------------
+# Verification
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plaintext password against a bcrypt hash."""
@@ -24,7 +25,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 # ----------------------------
 # Database Functions
-# ----------------------------
+
 def _load_users() -> dict:
     """Load all users from the database into a dictionary."""
     conn = sqlite3.connect(DB_PATH)
@@ -34,6 +35,8 @@ def _load_users() -> dict:
     conn.close()
     return users
 
+# ----------------------------
+# Database Initialization
 
 def create_users_table():
     """Create the users table if it doesn't exist."""
@@ -52,7 +55,7 @@ def create_users_table():
 
 # ----------------------------
 # User Operations
-# ----------------------------
+
 def register_user():
     """Register a new user."""
     username = input("Enter username: ").strip()
@@ -81,6 +84,8 @@ def register_user():
     finally:
         conn.close()
 
+# ----------------------------
+# Login Function
 
 def login_user(user_name: str, password: str) -> bool:
     """Login a user by verifying their credentials."""
@@ -99,8 +104,8 @@ def login_user(user_name: str, password: str) -> bool:
         return False
 
 # ----------------------------
-# Main Program Loop
-# ----------------------------
+# Main Loop
+
 def main():
     create_users_table()
 
