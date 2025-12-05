@@ -1,7 +1,8 @@
-# home.py - Login and home page only
-
+# home.py - Login and home page once logged in a user can see the page , if not logged in they see nothing
 import streamlit as st
 from main import login_user, hash_password
+from main import hash_password, DB_PATH
+import sqlite3
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="Home", layout="wide", page_icon="😵‍💫")
@@ -50,8 +51,7 @@ if not st.session_state.authenticated:
                 st.error("Password must be at least 4 characters")
             else:
                 # Registration function
-                from main import hash_password, DB_PATH
-                import sqlite3
+                
                 
                 if not reg_username or not reg_password:
                     st.error("Username and password are required")
